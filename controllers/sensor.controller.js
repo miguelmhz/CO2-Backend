@@ -1,9 +1,11 @@
 //Para que nos complete los comandos en VS Code 
 const {response, request} = require('express');
+
 const Sensor = require('../models/sensor.model');
 
 
-const greetsensor = async(req=request, res=response ) => {
+
+const addSensor = async(req=request, res=response ) => {
     const {serial,
         type,
         units,
@@ -17,27 +19,27 @@ const greetsensor = async(req=request, res=response ) => {
        )
     }else {
         try {
-            const sensor = await Sensor.findOne({serial})
+            const sensor = await Sensor.findOne({serial, type})
             if (sensor) {
                 
                 return res.send(
-                     "Sensor '" + serial +  "' is already in the data base."
+                     "Sensor '" + type + "' in '" + serial + "' is already in the database."
                 )
                 
             } else {
-    
+                
                 const newSensor = new Sensor({
                     serial,
                     type,
                     units,
                     token,
                     latlong,
-                    metadata
+                    metadata:metadata || type
                 })
                 await newSensor.save()
     
                 return res.send(
-                     "Sensor '" + serial +  "' added succefully"
+                    "Sensor '" + type + "' in '" + serial +  "' added succefully"
                 )
             }
             
@@ -91,36 +93,11 @@ const uploadmeasurement = async(req=request, res=response ) => {
 
     }
 }
-const downloadjson = async(req=request, res=response ) => {
-    const {serial} = req.params;
-    
-    try {
-        const sensor = await Sensor.findOne({serial})
-        if (!sensor) {
-            
-            return res.send(
-                 "Error: Sensor '" + serial +  "' not found"
-            )
-            
-        } else {
-            return res.json(
-                sensor
-           )
-        }
-            
-    } catch (error) {
-        console.log(error)
-        return res.json({
-            data: [],
-            error: error
-        })
-
-    }
-}
 
 
 
 
 
 
-module.exports = { greetsensor, uploadmeasurement,downloadjson}
+
+module.exports = { addSensor, uploadmeasurement}

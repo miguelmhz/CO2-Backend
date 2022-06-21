@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 const sensorSchema = Schema ({
     serial: {
         type: String,
-        unique: true
     },
     type:{
         type: String,
@@ -15,9 +14,11 @@ const sensorSchema = Schema ({
     },
     token: {
         type: String,
+        default: '1234'
     },
     latlong: {
         type: String,
+        default: '22.149631, -101.035683'
     },
     metadata: {
         type: String,
