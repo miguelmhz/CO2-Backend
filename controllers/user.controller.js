@@ -172,7 +172,7 @@ const addSensorUser =async(req=request, res)=>{
     const userID = req.usuario._id;
        try {
            const sensor = await sensorModel.find( { serial } )
-           //console.log(sensor)
+           console.log(sensor)
            const user = await User.findById( userID )
         if (user) {
             
