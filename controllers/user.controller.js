@@ -178,7 +178,7 @@ const addSensorUser =async(req=request, res)=>{
             
            
             const userSensors = user?.sensors.map(s=> s.serial)
-           if (!sensor) {
+           if (!sensor.length) {
                return res.json({
                    error: "Sensor no encontrado"
                })
