@@ -44,10 +44,7 @@ const newUser = async(req=request, res=response ) => {
         
     } catch (error) {
         console.log(error);
-        return res.status(500).json({
-            msg: "Error en servidor",
-            error: error
-        })
+        return res.status(500).json( )
     }
 }
 
@@ -252,6 +249,8 @@ const changeSensorName = async(req=request, res)=>{
 const deleteSensor = async(req=request, res=response ) => {
     const {_id} = req.usuario; 
     const {serial} = req.body;
+
+    console.log({serial})
     try {
         const user = await User.findById( _id )
         

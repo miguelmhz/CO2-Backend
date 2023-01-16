@@ -1,45 +1,61 @@
-//Para que nos complete los comandos en VS Code 
 const {response, request} = require('express');
-
 const Sensor = require('../models/sensor.model');
 
 
-
 const addSensor = async(req=request, res=response ) => {
-    const {serial,
+    const {
+        serial,
         type,
         units,
         token,
         latlong,
-        metadata
+        metadata,
+        data
     } = req.body;
-    if (!serial || !type || !units) {
+    if (!serial || !type || !metadata) {
         return res.send(
             "Datos incompletos"
        )
     }else {
+        const mac = serial.slice(0,17);
         try {
             const sensor = await Sensor.findOne({serial, type})
             if (sensor) {
+
+                if (typeof data == "object" && Array.isArray(data)) {
+                    const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
+                        $push: {
+                          data: { $each: data },
+                        },
+                    },)
+                }else{
+                    const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
+                        $push: {
+                          data: data ,
+                        },
+                    },)
+    
+                }
                 
                 return res.send(
-                     "Sensor '" + type + "' in '" + serial + "' is already in the database."
+                     "Datos '" + type + "' en '" + mac + "' agregados correctamente"
                 )
                 
             } else {
                 
                 const newSensor = new Sensor({
-                    serial,
+                    serial:mac,
                     type,
                     units,
                     token,
                     latlong,
-                    metadata:metadata || type
+                    metadata,
+                    data: data || []
                 })
                 await newSensor.save()
     
                 return res.send(
-                    "Sensor '" + type + "' in '" + serial +  "' added succefully"
+                    "Sensor '" + type + "' de '" + mac +  "' agregado correctamente"
                 )
             }
             
@@ -52,6 +68,7 @@ const addSensor = async(req=request, res=response ) => {
     }
 
 }
+
 const uploadmeasurement = async(req=request, res=response ) => {
     const {serial, data} = req.body;
     console.log(data)
@@ -77,13 +94,36 @@ const uploadmeasurement = async(req=request, res=response ) => {
                       data: data ,
                     },
                 },)
-                console.log(sensorUpdate)
 
             }
             return res.send(
                 "OK"
            )
         }
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            data: [],
+            error: error
+        })
+
+    }
+}
+const changeName = async(req=request, res=response ) => {
+    const {serial, metadata} = req.body;
+    const {id} = req.params;
+    try {
+        let sensor = id && id.length == 24 ? await Sensor.findById(id) : await Sensor.findOne({serial})
+        if (sensor) {
+            const data = id && id.length == 24 ? await Sensor.findByIdAndUpdate(id,{metadata}) :await Sensor.findOneAndUpdate({serial}, {metadata});
+            return res.json({
+                msg:"metadata editado correctamente"
+            })
+        } 
+        return res.json({
+            msg:"serial no encontrado",
+            error:true
+        })
     } catch (error) {
         console.log(error)
         return res.json({
@@ -100,4 +140,4 @@ const uploadmeasurement = async(req=request, res=response ) => {
 
 
 
-module.exports = { addSensor, uploadmeasurement}
+module.exports = { addSensor, uploadmeasurement, changeName}

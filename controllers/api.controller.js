@@ -231,8 +231,16 @@ const getDataBySensor = async(req=request, res=response ) => {
     const {serial, sensor} = req.params;
     const {start, end, last, unix} = req.query;
     try {
+        let resSensor = {};
+
+        if (serial.length <=7 ) {
+            resSensor = await Sensor.findOne({metadata:serial, type:sensor }).lean()
+            
+        }else{
+            resSensor = await Sensor.findOne({serial, type:sensor }).lean()
+
+        }
         //const sensors = await Sensor.find({ "serial": { "$regex": serial, "$options": "i" } })
-        let resSensor = await Sensor.findOne({serial, type:sensor }).lean()
         console.log(resSensor)
         if (!resSensor) {
             
@@ -241,7 +249,6 @@ const getDataBySensor = async(req=request, res=response ) => {
             )
             
         } else {
-            
             if (resSensor) {
                 let dataSensor = resSensor.data 
                 console.log(dataSensor)
