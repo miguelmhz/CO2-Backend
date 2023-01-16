@@ -19,7 +19,7 @@ const addSensor = async(req=request, res=response ) => {
     }else {
         const mac = serial.slice(0,17);
         try {
-            const sensor = await Sensor.findOne({serial, type})
+            const sensor = await Sensor.findOne({serial:mac, type})
             if (sensor) {
 
                 if (typeof data == "object" && Array.isArray(data)) {
