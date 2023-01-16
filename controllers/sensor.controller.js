@@ -94,10 +94,33 @@ const uploadmeasurement = async(req=request, res=response ) => {
     }
 }
 
+const changeName = async(req=request, res=response ) => {
+    const {serial, metadata} = req.body;
+    const {id} = req.params;
+    try {
+        let sensor = id && id.length == 24 ? await Sensor.findById(id) : await Sensor.findOne({serial})
+        if (sensor) {
+            const data = id && id.length == 24 ? await Sensor.findByIdAndUpdate(id,{metadata}) :await Sensor.findOneAndUpdate({serial}, {metadata});
+            return res.json({
+                msg:"metadata editado correctamente"
+            })
+        } 
+        return res.json({
+            msg:"serial no encontrado",
+            error:true
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            data: [],
+            error: error
+        })
+
+    }
+}
 
 
 
 
 
-
-module.exports = { addSensor, uploadmeasurement}
+module.exports = { addSensor, uploadmeasurement, changeName}
