@@ -241,7 +241,6 @@ const getDataBySensor = async(req=request, res=response ) => {
 
         }
         //const sensors = await Sensor.find({ "serial": { "$regex": serial, "$options": "i" } })
-        console.log(resSensor)
         if (!resSensor) {
             
             return res.send(
