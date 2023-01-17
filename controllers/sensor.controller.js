@@ -23,7 +23,11 @@ const addSensor = async(req=request, res=response ) => {
         try {
             const sensor = await Sensor.findOne({serial:mac, type})
             if (sensor) {
-
+                if (!data) {
+                    return res.send(
+                        "Sensor previamente registrado"
+                    )
+                }
                 if (typeof data == "object" && Array.isArray(data)) {
                     const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
                         $push: {
