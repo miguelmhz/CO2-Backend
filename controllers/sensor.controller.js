@@ -4,7 +4,7 @@ const Sensor = require('../models/sensor.model');
 
 const addSensor = async(req=request, res=response ) => {
     console.log(req.body)
-
+    
     const {
         serial,
         type,
@@ -14,7 +14,7 @@ const addSensor = async(req=request, res=response ) => {
         metadata,
         data
     } = req.body;
-    if (!serial || !type || !metadata) {
+    if (!serial || !type ) {
         return res.send(
             "Datos incompletos"
        )
@@ -44,14 +44,18 @@ const addSensor = async(req=request, res=response ) => {
                 )
                 
             } else {
-                
+                if (!serial || !type || !metadata ) {
+                    return res.send(
+                        "Datos incompletos"
+                   )
+                }
                 const newSensor = new Sensor({
                     serial:mac,
                     type,
                     units,
                     token,
                     latlong,
-                    metadata,
+                    metadata: metadata || type,
                     data: data || []
                 })
                 await newSensor.save()
