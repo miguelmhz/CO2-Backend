@@ -3,6 +3,8 @@ const Sensor = require('../models/sensor.model');
 
 
 const addSensor = async(req=request, res=response ) => {
+    console.log(req.body)
+
     const {
         serial,
         type,
@@ -60,6 +62,7 @@ const addSensor = async(req=request, res=response ) => {
             }
             
         } catch (error) {
+            console.log(error)
             return res.json({
                 data: [],
                 error: error
