@@ -12,7 +12,9 @@ const addSensor = async(req=request, res=response ) => {
         token,
         latlong,
         metadata,
-        data
+        data, 
+        val,
+        datetime
     } = req.body;
     if (!serial || !type ) {
         return res.send(
@@ -24,6 +26,16 @@ const addSensor = async(req=request, res=response ) => {
             const sensor = await Sensor.findOne({serial:mac, type})
             if (sensor) {
                 if (!data) {
+                    if (val && datetime) {
+                        const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
+                            $push: {
+                              data: data ,
+                            },
+                        },)
+                        return res.send(
+                            "Datos '" + type + "' en '" + mac + "' agregados correctamente"
+                        )
+                    }
                     return res.send(
                         "Sensor previamente registrado"
                     )
