@@ -2,9 +2,7 @@ const {response, request} = require('express');
 const Sensor = require('../models/sensor.model');
 
 
-const addSensor = async(req=request, res=response ) => {
-    console.log(req.body)
-    
+const addSensor = async(req=request, res=response ) => {    
     const {
         serial,
         type,
@@ -29,7 +27,7 @@ const addSensor = async(req=request, res=response ) => {
                     if (val && datetime) {
                         const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
                             $push: {
-                              data: data ,
+                              data: {val, datetime} 
                             },
                         },)
                         return res.send(
