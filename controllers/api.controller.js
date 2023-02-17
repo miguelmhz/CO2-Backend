@@ -80,7 +80,6 @@ const addSensorPost = async(req=request, res=response ) => {
 
        try {
            const sensor = await Sensor.find( { serial } )
-           console.log(sensor)
            const user = await User.findById( userID )
        
            if (!sensor) {
@@ -126,7 +125,6 @@ const getMeasurements = async(req=request, res=response ) => {
         
         if (user && JSON.stringify(user).includes(serial)) {
             const sensor =await Sensor.findOne({serial:serial});
-            console.log(sensor.type);
             return res.json({
                 data:sensor
             })
@@ -158,9 +156,7 @@ const deleteSensor = async(req=request, res=response ) => {
                     sensors: {serial: sensor},
                 },
             });
-            console.log("sensor", sensor)
-            console.log(user)
-            console.log(sesnorBorrado)
+
             return res.json({
                 msg: "Sensor borrado con exito"
             })
@@ -183,7 +179,7 @@ const deleteSensor = async(req=request, res=response ) => {
 
 const getDataBySerial = async(req=request, res=response ) => {
     const {serial} = req.params;
-    const {start, end, unix} = req.query;
+    const {start, end,last ,unix} = req.query;
     try {
         const sensor = await Sensor.find({serial })
         if (!sensor) {
@@ -199,6 +195,8 @@ const getDataBySerial = async(req=request, res=response ) => {
                 sensor.forEach(d=> d.data = d.data.filter(data=> data.datetime >= parseInt(stripAlphaChars(start))) )
             }else if(end){
                 sensor.forEach(d=> d.data = d.data.filter(data=>  data.datetime <= parseInt(stripAlphaChars(end))) )
+            }else if(last){
+                sensor.forEach(d=> d.data = d.data.slice(-last) )
             }
             if (unix === 'false' ) {
                 sensor.forEach(d => {
@@ -208,7 +206,6 @@ const getDataBySerial = async(req=request, res=response ) => {
                     ))
                 })
             }
-            console.log(sensor[0].data)
             return res.json({
                 data: sensor
             }
@@ -250,7 +247,6 @@ const getDataBySensor = async(req=request, res=response ) => {
         } else {
             if (resSensor) {
                 let dataSensor = resSensor.data 
-                console.log(dataSensor)
                 if (start && end) {
                     dataSensor = dataSensor.filter(d=> d.datetime >= parseInt(stripAlphaChars(start))  && d.datetime <= parseInt(stripAlphaChars(end)) )
                 }else if (start) {
