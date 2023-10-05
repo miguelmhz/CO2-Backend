@@ -35,31 +35,14 @@ const getAllSensors = async(req=request, res=response ) => {
 
 
 const getSensors = async(req=request, res=response ) => {
-    const {user } = req.params
 
     try {
-        const data = await User.findById(user)
-        if (data) {
-            if (data.sensors) {
-                const sensorsList = data.sensors.map(sensor => sensor.serial)
-                const sensors = await Sensor.find({
-                    'serial' : sensorsList
-                }) 
-                return res.json({
-                    data: sensors
-                })
-            }
-
-            return res.json({
-                data:[]
-            })
-            
-        } else {
-            return res.json({
-                data:[]
-            })
-        }
-        
+        const sensors = await Sensor.find({},{data:0, units:0,
+            token:0,
+            latlong:0}) 
+        return res.json({
+            data: sensors
+        })
     } catch (error) {
         console.log("error aquiii",  error);
         return res.json({
