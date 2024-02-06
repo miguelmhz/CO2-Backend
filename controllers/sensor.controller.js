@@ -1,8 +1,8 @@
-const {response, request} = require('express');
+const { response, request } = require('express');
 const Sensor = require('../models/sensor.model');
 
 
-const addSensor = async(req=request, res=response ) => {    
+const addSensor = async (req, res) => {
     const {
         serial,
         type,
@@ -10,140 +10,116 @@ const addSensor = async(req=request, res=response ) => {
         token,
         latlong,
         metadata,
-        data, 
+        data,
         val,
         datetime
     } = req.body;
-    if (!serial || !type ) {
-        return res.send(
-            "Datos incompletos"
-       )
-    }else {
-        const mac = serial.slice(0,17);
-        try {
-            const sensor = await Sensor.findOne({serial:mac, type})
-            if (sensor) {
-                if (!data) {
-                    if (val && datetime) {
-                        const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
-                            $push: {
-                              data: {val, datetime} 
-                            },
-                        },)
-                        return res.send(
-                            "Datos '" + type + "' en '" + mac + "' agregados correctamente"
-                        )
-                    }
-                    return res.send(
-                        "Sensor previamente registrado"
-                    )
-                }
-                if (typeof data == "object" && Array.isArray(data)) {
-                    const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
-                        $push: {
-                          data: { $each: data },
-                        },
-                    },)
-                }else{
-                    const sensorUpdate = await Sensor.findOneAndUpdate({serial:mac, type}, {
-                        $push: {
-                          data: data ,
-                        },
-                    },)
-    
-                }
-                
-                return res.send(
-                     "Datos '" + type + "' en '" + mac + "' agregados correctamente"
-                )
-                
-            } else {
-                if (!serial || !type || !metadata ) {
-                    return res.send(
-                        "Datos incompletos"
-                   )
-                }
-                const newSensor = new Sensor({
-                    serial:mac,
-                    type,
-                    units,
-                    token,
-                    latlong,
-                    metadata: metadata || type,
-                    data: data || []
-                })
-                await newSensor.save()
-    
-                return res.send(
-                    "Sensor '" + type + "' de '" + mac +  "' agregado correctamente"
-                )
-            }
-            
-        } catch (error) {
-            console.log(error)
-            return res.json({
-                data: [],
-                error: error
-            })
-        }
+
+    console.log(req.body);
+
+    // Comprobación de datos incompletos
+    if (!serial || !type) {
+        console.log("Datos incompletos");
+        return res.send("Datos incompletos");
     }
 
-}
+    // Extracción de la parte MAC de serial
+    const mac = serial.slice(0, 17);
 
-const uploadmeasurement = async(req=request, res=response ) => {
-    const {serial, data} = req.body;
-    console.log(data)
     try {
-        const sensor = await Sensor.findOne({serial})
-        if (!sensor) {
-            
-            return res.send(
-                 "Error: Sensor '" + serial +  "' not find"
-            )
-            
-        } else {
-            if (typeof data == "object" && Array.isArray(data)) {
-                const sensorUpdate = await Sensor.findOneAndUpdate({serial}, {
-                    $push: {
-                      data: { $each: data },
-                    },
-                },)
-                console.log(sensorUpdate)
-            }else{
-                const sensorUpdate = await Sensor.findOneAndUpdate({serial}, {
-                    $push: {
-                      data: data ,
-                    },
-                },)
+        // Buscar si el sensor ya existe en la base de datos
+        const sensor = await Sensor.findOne({ serial: mac, type });
 
-            }
-            return res.send(
-                "OK"
-           )
-        }
-    } catch (error) {
-        console.log(error)
-        return res.json({
-            data: [],
-            error: error
-        })
-
-    }
-}
-const changeName = async(req=request, res=response ) => {
-    const {serial, metadata} = req.body;
-    const {id} = req.params;
-    try {
-        let sensor = id && id.length == 24 ? await Sensor.findById(id) : await Sensor.findOne({serial})
         if (sensor) {
-            const data = id && id.length == 24 ? await Sensor.findByIdAndUpdate(id,{metadata}) :await Sensor.findOneAndUpdate({serial}, {metadata});
+            // Si el sensor ya existe, actualizar los datos si están presentes
+            if (!data) {
+                if (val && datetime) {
+                    await Sensor.findOneAndUpdate(
+                        { serial: mac, type },
+                        { $push: { data: { val, datetime } } }
+                    );
+                    return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
+                }
+                return res.send("Sensor previamente registrado");
+            }
+
+            // Si hay datos, agregarlos al sensor
+            if (Array.isArray(data)) {
+                await Sensor.findOneAndUpdate(
+                    { serial: mac, type },
+                    { $push: { data: { $each: data } } }
+                );
+            } else {
+                await Sensor.findOneAndUpdate(
+                    { serial: mac, type },
+                    { $push: { data: data } }
+                );
+            }
+
+            return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
+        } else {
+            // Si el sensor no existe, crear uno nuevo con los datos proporcionados
+            const newSensor = new Sensor({
+                serial: mac,
+                type,
+                units,
+                token,
+                latlong,
+                metadata: metadata || type,
+                data: data || []
+            });
+
+            await newSensor.save();
+
+            return res.send(`Sensor '${type}' de '${mac}' agregado correctamente`);
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Error al agregar el sensor" });
+    }
+};
+
+
+const uploadmeasurement = async (req = request, res = response) => {
+    const { serial, data } = req.body;
+
+    try {
+        const sensor = await Sensor.findOne({ serial });
+        if (!sensor) {
+            return res.status(404).send(`Error: Sensor '${serial}' not found`);
+        }
+
+        let updateQuery;
+        if (Array.isArray(data)) {
+            updateQuery = { $push: { data: { $each: data } } };
+        } else {
+            updateQuery = { $push: { data: data } };
+        }
+
+        const sensorUpdate = await Sensor.findOneAndUpdate({ serial }, updateQuery);
+
+        console.log(sensorUpdate);
+        return res.send("OK");
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message });
+    }
+
+}
+const changeName = async (req = request, res = response) => {
+    const { serial, metadata } = req.body;
+    const { id } = req.params;
+    try {
+        let sensor = id && id.length == 24 ? await Sensor.findById(id) : await Sensor.findOne({ serial })
+        if (sensor) {
+            const data = id && id.length == 24 ? await Sensor.findByIdAndUpdate(id, { metadata }) : await Sensor.findOneAndUpdate({ serial }, { metadata });
             return res.json({
-                msg:"metadata editado correctamente"
+                msg: "metadata editado correctamente"
             })
-        } 
+        }
         return res.json({
-            msg:"serial no encontrado",
-            error:true
+            msg: "serial no encontrado",
+            error: true
         })
     } catch (error) {
         console.log(error)
@@ -161,4 +137,4 @@ const changeName = async(req=request, res=response ) => {
 
 
 
-module.exports = { addSensor, uploadmeasurement, changeName}
+module.exports = { addSensor, uploadmeasurement, changeName }
