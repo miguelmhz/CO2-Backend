@@ -15,7 +15,6 @@ const addSensor = async (req, res) => {
         datetime
     } = req.body;
 
-    console.log(req.body);
 
     // Comprobación de datos incompletos
     if (!serial || !type) {
@@ -38,6 +37,7 @@ const addSensor = async (req, res) => {
                         { serial: mac, type },
                         { $push: { data: { val, datetime } } }
                     );
+                    console.log( "Datos agregados");
                     return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
                 }
                 return res.send("Sensor previamente registrado");
@@ -55,6 +55,7 @@ const addSensor = async (req, res) => {
                     { $push: { data: data } }
                 );
             }
+            console.log(data.length + " Datos agregados");
 
             return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
         } else {
@@ -98,7 +99,6 @@ const uploadmeasurement = async (req = request, res = response) => {
         // Actualizar el sensor con los datos recibidos
         const sensorUpdate = await Sensor.findOneAndUpdate({ serial }, updateQuery);
 
-        console.log(sensorUpdate);
         return res.send(`Datos en '${serial}' agregados correctamente`);
     } catch (error) {
         console.error(error);
