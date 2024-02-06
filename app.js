@@ -32,6 +32,11 @@ app.use("/sensor", sensorRoute)
 app.use("/user", userRoute)
 app.use("/api", apiRoute)
 
+app.get('/hi',(req, res)=> {
+    res.json({
+        ok:true
+    })
+})
 
 
 app.listen(port, ()=> {
