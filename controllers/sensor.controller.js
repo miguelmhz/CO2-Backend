@@ -84,27 +84,26 @@ const uploadmeasurement = async (req = request, res = response) => {
     const { serial, data } = req.body;
 
     try {
+        // Verificar si el sensor existe
         const sensor = await Sensor.findOne({ serial });
         if (!sensor) {
             return res.status(404).send(`Error: Sensor '${serial}' not found`);
         }
 
-        let updateQuery;
-        if (Array.isArray(data)) {
-            updateQuery = { $push: { data: { $each: data } } };
-        } else {
-            updateQuery = { $push: { data: data } };
-        }
+        // Construir la consulta de actualización según el tipo de datos
+        const updateQuery = Array.isArray(data)
+            ? { $push: { data: { $each: data } } }
+            : { $push: { data: data } };
 
+        // Actualizar el sensor con los datos recibidos
         const sensorUpdate = await Sensor.findOneAndUpdate({ serial }, updateQuery);
 
         console.log(sensorUpdate);
-        return res.send("OK");
+        return res.send(`Datos en '${serial}' agregados correctamente`);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: error.message });
     }
-
 }
 const changeName = async (req = request, res = response) => {
     const { serial, metadata } = req.body;
