@@ -2,6 +2,8 @@
 const {response, request} = require('express');
 const Sensor = require('../models/sensor.model');
 const User = require('../models/user.model');
+const { exec } = require('child_process');
+
 const  moment = require('moment');
 
 function stripAlphaChars(source) { 
@@ -265,6 +267,26 @@ const getDataBySensor = async(req=request, res=response ) => {
     }
 }
 
+const serverLogs = (req, res) => {
+    // Ejecutar el comando de shell para obtener los últimos 100 logs de PM2
+    exec('pm2 logs co2-bkn --lines 100', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error al obtener los logs de PM2: ${error.message}`);
+            return res.status(500).send('Error al obtener los logs de PM2');
+        }
+        if (stderr) {
+            console.error(`Error de PM2: ${stderr}`);
+            return res.status(500).send('Error al obtener los logs de PM2');
+        }
+
+        // Convertir los logs a HTML
+        const logsHTML = `<pre>${stdout}</pre>`;
+
+        // Enviar los logs como respuesta
+        res.send(logsHTML);
+    });
+};
+
 
 
 module.exports = {
@@ -274,5 +296,6 @@ module.exports = {
     getAllSensors,
     deleteSensor,
     getDataBySerial,
-    getDataBySensor
+    getDataBySensor,
+    serverLogs
 }
