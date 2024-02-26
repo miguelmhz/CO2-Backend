@@ -268,7 +268,7 @@ const getDataBySensor = async(req=request, res=response ) => {
 }
 
 const serverLogs = (req, res) => {
-    exec('cat /home/usuario2/.pm2/logs/co2-bkn-out.log', (error, stdout, stderr) => {
+    exec('tail -n 50  /home/usuario2/.pm2/logs/co2-bkn-out.log', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error al obtener los logs de PM2: ${error.message}`);
             return res.status(500).send('Error al obtener los logs de PM2');
