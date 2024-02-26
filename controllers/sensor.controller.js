@@ -37,7 +37,7 @@ const addSensor = async (req, res) => {
                         { serial: mac, type },
                         { $push: { data: { val, datetime } } }
                     );
-                    console.log( "Datos agregados: " + datetime + " - " + val )
+                    console.log( "Datos agregados: " + datetime + " - " + val + " en " + mac )
                     
 
                     return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
@@ -58,7 +58,7 @@ const addSensor = async (req, res) => {
                 );
             }
             
-            console.log( (Array.isArray(data)?data.length: data.datetime + " - " + data.val )+ " Datos agregados");
+            console.log( (Array.isArray(data)?data.length: data.datetime + " - " + data.val  ) + " en " + mac + " Datos agregados");
 
             return res.send(`Datos '${type}' en '${mac}' agregados correctamente`);
         } else {
